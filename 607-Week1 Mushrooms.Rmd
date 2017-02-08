@@ -1,0 +1,59 @@
+---
+title: "Mushrooms Dataset"
+author: "Data 607 Week 1"
+date: "Feb 26, 2017"
+output: html_document
+---
+        
+http://rpubs.com/liuferrara/Data607
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+* Take the mushrooms data, and create a data frame with a subset of the columns in the dataset.   
+* include the column that indicates edible or poisonous and three or four other columns.   
+* add meaningful column names and replace the abbreviations used in the data-for example, in the appropriate column, "e" might become "edible."
+
+```{r}
+## if (!require("RCurl"))install.packages("RCurl")
+## if (!require("plyr")) install.packages('plyr')
+## if (!require("plyr")) install.packages('vcd')
+
+library(RCurl)
+library(plyr)
+library(vcd)
+
+url <- "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data"
+
+mushroom_data <-getURL(url)
+
+mushroom_df <- read.csv(text=mushroom_data,header=F,sep=",", na.strings = "?", stringsAsFactors = FALSE)
+dim(mushroom_df)
+
+head(mushroom_df)
+
+# Subset to get 5 variables: edible, odor, spore-print-color, population, and habitat
+mushroom_df <- mushroom_df[,c(1, 6, 22, 23)]
+
+mushroom_df$class <- revalue(mushroom_df$V1, c(e = "edible", p = 'poisonous'))
+mushroom_df$odor <- revalue(mushroom_df$V6, c(a = "almond", l = "anise", c = "creosote",y = "fishy", f = "foul", m = "musty", n = "none", p = "pungent", s = "spicy"))
+mushroom_df$population <- revalue(mushroom_df$V22, c(a = "abundant", c = "clustered", n = "numerous", s = "scattered", v = "several", y = "solitary"))
+mushroom_df$habitat <- revalue(mushroom_df$V23, c(g = "grasses", l = "leaves", m = "meadows", p = "paths", u = "urban", w = "waste", d = "woods"))
+
+mushroom_df <- mushroom_df[, 5:8]
+
+head(mushroom_df)
+str(mushroom_df)
+
+table(mushroom_df$class, mushroom_df$habitat)
+table(mushroom_df$class, mushroom_df$population)
+
+mosaic(~ class + population + habitat, data = mushroom_df, shade=TRUE, legend=TRUE)
+
+```
+
+Reference:
+
+https://wwells.github.io/CUNYBridge_R/HW3_mushrooms.html
+
