@@ -1,0 +1,80 @@
+---
+title: "IS 605 FUNDAMENTALS OF COMPUTATIONAL MATHEMATICS - SPRING 2017, Assignment Week 1"
+author: "Ann Liu-Ferrara"
+date: "February 8, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Problem set 1
+You can think of vectors representing many dimensions of related information. Forinstance, Netflix might store all the ratings a user gives to movies in a vector. This is clearly a vector of very large dimensions (in the millions) and very sparse as the user might have rated only a few movies. Similarly, Amazon might store the items purchased by a user in a vector, with each slot or dimension representing a unique product and the value of the slot, the number of such items the user bought. One task that is frequently done in these settings is to find similarities between users. And, we can use dot-product between vectors to do just that. As you know, the dot-product is proportional to the length of two vectors and to the angle between them. In fact, the dot-product between two vectors, normalized by their lengths is called as the cosine distance and is frequently used in recommendation engines.
+
+(1) Calculate the dot product u.v where u = [0.5; 0.5] and v = [3; -4]
+
+```{r echo = TRUE}
+u = c(0.5, 0.5)
+v = c(3, -4)
+sum(u * v)
+
+```
+(2) What are the lengths of u and v? Please note that the mathematical notion of the length of a vector is not the same as a computer science definition.
+```{r echo = TRUE}
+sqrt(sum(u * u))
+sqrt(sum(v * v))
+```
+(3) What is the linear combination: 3u - 2v?
+```{r echo = TRUE}
+3 * u - 2 * v
+
+```
+(4) What is the angle between u and v
+```{r echo = TRUE}
+acos( sum(u * v) / ( sqrt(sum(u * u)) * sqrt(sum(v * v)) ) )
+
+```
+
+## Problem set 2
+Set up a system of equations with 3 variables and 3 constraints and solve for x. Please write a function in R that will take two variables (matrix A & constraint vector b) and solve using elimination. Your function should produce the right answer for the system of equations for any 3-variable, 3-equation system. You don't have to worry about degenerate cases and can safely assume that the function will only be tested with a system of equations that has a solution. Please note that you do have to worry about zero pivots, though. Please note that you should not use the built-in function solve to solve this system or use matrix inverses. The approach that you should employ is to construct an Upper Triangular Matrix and then back-substitute to get the solution. Alternatively, you can augment the matrix A with vector b and jointly apply the Gauss Jordan elimination procedure.
+
+Please test it with the system below and it should produce a solution x = [-1.55, -0.32, 0.95]
+```{r echo=TRUE}
+A = matrix(c(1,1,3,2,-1,5,-1,-2,4), 3, byrow=T)
+A
+
+## Create a function to solve system of equation problems with Gauss Jordan elimination procedure
+matrixSolve <- function (A, v) {
+  b=matrix(v, nrow = 3,ncol = 1)
+  p <- nrow(A)
+  m <- cbind(A,b)
+  
+  m[1,] <- m[1,]/m[1,1]
+  # produce 3 zeros on the lower left corner
+  for (i in 2:p){
+    for (j in i:p) {
+      m[j, ] <- m[j, ] - m[i-1, ] * m[j, i-1]
+    }
+    m[i,] <- m[i,]/m[i,i]
+  }
+  
+  ## produce 3 zeros on the upper right corner
+  for (i in p:2){
+    for (j in i:2-1) {
+      m[j, ] <- m[j, ] - m[i, ] * m[j, i]
+    }
+  }
+  return(round(m[, 4], 2))
+}
+
+## Testing
+A = matrix(c(1,1,3,2,-1,5,-1,-2,4), 3, byrow=T)
+v = c(1, 2, 6)
+matrixSolve(A, v)
+```
+
+Reference:
+
+https://answers.yahoo.com/question/index?qid=20080906115056AAbqVxr
+
+http://stackoverflow.com/questions/16044377/how-to-do-gaussian-elimination-in-r-do-not-use-solve
