@@ -1,0 +1,50 @@
+---
+title: "607_ALiu-Ferrara_Week2"
+author: "Ann Liu-Ferrara"
+date: "February 12, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Assignment – SQL and R
+
+Choose six recent popular movies. Ask at least five people that you know (friends, family, classmates, imaginary friends) to rate each of these movie that they have seen on a scale of 1 to 5. Take the  
+results (observations) and store them in a SQL database. Load the information into an R dataframe. Your deliverables should include your SQL scripts and your R Markdown code, posted to GitHub.
+
+```{r echo = TRUE}
+
+#if(!require("RMySQL")) install.packages("RMySQL")
+#if(!require("ggplot2")) install.packages("ggplot2")
+
+library(RMySQL)
+library(ggplot2)
+
+mydb = dbConnect(MySQL(), user='xxxxx', password='xxxxx', dbname='movies', host='localhost')
+dbListTables(mydb)
+rs <- dbSendQuery(mydb, 'select * from movie_reviews')
+movieRating <- fetch(rs, n = -1)
+
+# The movie rating by reviewer
+qplot(rating, movie, data = movieRating,  xlab = "Rating", ylab = "Movie",
+      main = "Individual Movie Rating by Reviewer") +
+  facet_wrap(~reviewer) 
+
+# Movie rating from highest to lowest
+ggplot(movieRating, aes(x = reorder(movie, rating), y = rating, fill = movie),
+      main = 'Histogram for Rating', xlab = 'Rating', fill = I("lightblue"), col = I("grey")) +
+  geom_bar(stat = "identity") + 
+  ggtitle("Movie Ratings") +
+  labs(x = "Movie") +
+  coord_flip()
+
+# Movie Rating by reviewer
+ggplot(movieRating, aes(x = reorder(reviewer, -rating), y = rating, fill = reviewer)) + 
+  geom_bar(stat = "identity") + 
+  ggtitle("Total Movie Rating by Reviewer") + 
+  labs(x = "Reviewer")
+
+dbListConnections(dbDriver(drv = "MySQL"))
+```
