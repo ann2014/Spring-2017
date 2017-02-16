@@ -1,0 +1,141 @@
+---
+title: "IS 605 FUNDAMENTALS OF COMPUTATIONAL MATHEMATICS - SPRING 2017, Assignment Week 2"
+author: "Ann Liu-Ferrara"
+date: "February 9, 2017"
+output: 
+  html_document:
+    mathjax: "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+runtime: shiny
+---
+
+$\mathbf{X}^\top$ is the matrix transpose of $\mathbf{X}$.
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Problem set 1
+(1) Show that AT $A^TA$ $\neq$ $AA^T$ in general. (Proof and demonstration.)
+
+        Proof:as AB $\neq$ BA, let B = $A^T$, then $A^TA$ $\neq$ $AA^T$
+
+        Demonstration:
+
+\[
+\begin{pmatrix}
+  \begin{bmatrix}
+    1       & 2 & 3  \\
+    4       & 5 & 6  \\
+    7       & 8 & 9 
+  \end{bmatrix}
+\end{pmatrix}^T
+\begin{bmatrix}
+    1       & 2 & 3  \\
+    4       & 5 & 6  \\
+    7       & 8 & 9 
+\end{bmatrix}
+\stackrel{?}{=}
+\begin{bmatrix}
+    1       & 2 & 3  \\
+    4       & 5 & 6  \\
+    7       & 8 & 9 
+\end{bmatrix}
+\begin{pmatrix}
+  \begin{bmatrix}
+    1       & 2 & 3  \\
+    4       & 5 & 6  \\
+    7       & 8 & 9 
+  \end{bmatrix}
+\end{pmatrix}^T
+\]
+
+
+\[
+\begin{bmatrix}
+    66       & 78 & 90  \\
+    78       & 93 & 108  \\
+    90       & 108 & 126 
+\end{bmatrix}
+\neq
+\begin{bmatrix}
+    14       & 32 & 50  \\
+    32       & 77 & 122  \\
+    50       & 122 & 194
+\end{bmatrix}
+\]
+
+
+(2) For a special type of square matrix A, we get $A^TA$ = $AA^T$. Under what conditions could this be true? (Hint: The Identity matrix I is an example of such a matrix). Please typeset your response using LaTeX mode in RStudio. 
+
+        Identity and symmetric matrices equal to their inverses, so have the property AB = BA:
+
+\[
+\begin{pmatrix}
+  \begin{bmatrix}
+    1       & 0 & 0  \\
+    0       & 1 & 0  \\
+    0       & 0 & 1 
+  \end{bmatrix}
+\end{pmatrix}^T
+\begin{bmatrix}
+    1       & 0 & 0  \\
+    0       & 1 & 0  \\
+    0       & 0 & 1 
+\end{bmatrix}
+\stackrel{?}{=}
+\begin{bmatrix}
+    1       & 0 & 0  \\
+    0       & 1 & 0  \\
+    0       & 0 & 1 
+\end{bmatrix}
+\begin{pmatrix}
+  \begin{bmatrix}
+    1       & 0 & 0  \\
+    0       & 1 & 0  \\
+    0       & 0 & 1 
+  \end{bmatrix}
+\end{pmatrix}^T
+\]
+
+
+\[
+\begin{bmatrix}
+    1       & 0 & 0  \\
+    0       & 1 & 0  \\
+    0       & 0 & 1 
+\end{bmatrix}
+=
+\begin{bmatrix}
+    1       & 0 & 0  \\
+    0       & 1 & 0  \\
+    0       & 0 & 1 
+\end{bmatrix}
+\]
+
+## Problem set 2
+Matrix factorization is a very important problem. There are supercomputers built just to do matrix factorizations. Every second you are on an airplane, matrices are being factorized. Radars that track flights use a technique called Kalman filtering. At the heart of Kalman Filtering is a Matrix Factorization operation. Kalman Filters are solving linear systems of equations when they track your flight using radars. Write an R function to factorize a square matrix A into LU or LDU, whichever you prefer. 
+
+```{r echo=TRUE}
+DecomposeLU <- function (A) {
+  if(dim(A)[1] != dim(A)[2]) 
+    return(NULL)
+
+  U <- A
+  L <- diag(dim(A)[1])
+          
+  # create E, and update E, U and L 
+  for (i in 2:dim(A)[1]) {
+    for (j in 1:(i - 1)) {
+      E <- diag(dim(A)[1])
+      E[i, j] <- -(U[i, j]/U[j, j])
+      U <- E %*% U
+      L <- L %*% solve(E)
+    }
+  }
+  
+  return(list(L, U))
+}
+
+```
+
+Reference:https://github.com/wwells/CUNY_DATA_605/blob/master/Week02/WWells_Assign2.Rmd
+
