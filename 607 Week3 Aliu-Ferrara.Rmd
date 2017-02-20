@@ -1,0 +1,47 @@
+---
+title: "607 Week3 ALiu-Ferrara"
+author: "Ann Liu-Ferrara"
+date: "February 18, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(stringr)
+```
+
+## 3. Copy the introductory example. The vector name stores the extracted names.
+R> name
+[1] "Moe Szyslak" "Burns, C. Montgomery" "Rev. Timothy Lovejoy"
+[4] "Ned Flanders" "Simpson, Homer" "Dr. Julius Hibbert"
+```{r echo=FALSE}
+name <- c("Moe Szyslak", "Burns, C. Montgomery", "Rev. Timothy Lovejoy",
+          "Ned Flanders", "Simpson, Homer", "Dr. Julius Hibbert")
+name
+```
+
+(a) Use the tools of this chapter to rearrange the vector so that all elements conform to
+the standard first_name last_name.
+```{r echo=FALSE}
+
+```
+
+(b) Construct a logical vector indicating whether a character has a title (i.e., Rev. and
+Dr.).
+
+
+(c) Construct a logical vector indicating whether a character has a second name.
+
+
+33 4. Describe the types of strings that conform to the following regular expressions and
+construct an example that is matched by the regular expression.
+
+(a) [0-9]+\\$
+(b) \\b[a-z]{1,4}\\b
+(c) .*?\\.txt$
+(d) \\d{2}/\\d{2}/\\d{4}
+(e) <(.+?)>.+?</\\1>
+
+```{r cars}
+
+```
