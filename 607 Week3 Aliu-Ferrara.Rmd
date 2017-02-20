@@ -14,34 +14,69 @@ library(stringr)
 R> name
 [1] "Moe Szyslak" "Burns, C. Montgomery" "Rev. Timothy Lovejoy"
 [4] "Ned Flanders" "Simpson, Homer" "Dr. Julius Hibbert"
-```{r echo=FALSE}
-name <- c("Moe Szyslak", "Burns, C. Montgomery", "Rev. Timothy Lovejoy",
-          "Ned Flanders", "Simpson, Homer", "Dr. Julius Hibbert")
-name
-```
 
 (a) Use the tools of this chapter to rearrange the vector so that all elements conform to
 the standard first_name last_name.
-```{r echo=FALSE}
+```{r echo=TRUE}
+name <- c("Moe Szyslak", "Burns, C. Montgomery", "Rev. Timothy Lovejoy",
+          "Ned Flanders", "Simpson, Homer", "Dr. Julius Hibbert")
+
+ first <- unlist(str_extract_all(name, '\\w+ |\\, \\w+$|\\. \\w+$'))
+ first <- unlist(str_extract_all(first, '\\w+'))
+ last <- unlist(str_extract_all(name, '\\b \\w+|\\w+,'))
+ last <- unlist(str_extract_all(last, '\\w+'))
+ full_name <- paste0(first, ' ', last)
+ full_name
 
 ```
 
-(b) Construct a logical vector indicating whether a character has a title (i.e., Rev. and
-Dr.).
-
+(b) Construct a logical vector indicating whether a character has a title (i.e., Rev. and Dr.).
+```{r echo = TRUE}
+title <- str_detect(name, 'Rev.|Dr.')
+```
 
 (c) Construct a logical vector indicating whether a character has a second name.
+```{r echo = TRUE}
+  second_name <- str_detect(name, '\\ .\\. ')
+```
 
-
-33 4. Describe the types of strings that conform to the following regular expressions and
+## 4. Describe the types of strings that conform to the following regular expressions and
 construct an example that is matched by the regular expression.
 
 (a) [0-9]+\\$
-(b) \\b[a-z]{1,4}\\b
-(c) .*?\\.txt$
-(d) \\d{2}/\\d{2}/\\d{4}
-(e) <(.+?)>.+?</\\1>
 
-```{r cars}
+  Digits ending with dollar sign
+```{r echo = TRUE}
+unlist(str_extract_all('212$13 33$', '[0-9]+\\$'))
+```
+(b) \\b[a-z]{1,4}\\b
+
+  Any lower case words with a word edge and repeated at least 1 and up to 4 times.
+```{r echo = TRUE}
+unlist(str_extract_all('a wordExample4 2 word', '\\b[a-z]{1,4}\\b'))
+```
+(c) .*?\\.txt$
+
+  Either none or any characters ending with .txt
+```{r echo = TRUE}
+unlist(str_extract_all('a wordExample4 2 word.txt', '.*?\\.txt$'))
+unlist(str_extract_all('.txt', '.*?\\.txt$'))
 
 ```
+(d) \\d{2}/\\d{2}/\\d{4}
+
+  Date format with '/', dd/mm/year
+```{r echo = TRUE}
+unlist(str_extract_all('23/02/1902 23/12/1998', '\\d{2}/\\d{2}/\\d{4}'))
+
+```
+(e) <(.+?)>.+?</\\1>
+
+  Search for html or xml tag pattern begin with <tag> and end with </tag>
+```{r echo = TRUE}
+unlist(str_extract_all('<html>content</html>, <tag>text</tag>', '<(.+?)>.+?</\\1>'))
+
+```
+
+Reference: 
+https://github.com/wwells/CUNY_DATA_607/blob/master/Week3/Regex_Week3.Rmd
