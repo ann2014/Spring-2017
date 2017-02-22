@@ -1,0 +1,92 @@
+---
+title: "IS 605 FUNDAMENTALS OF COMPUTATIONAL MATHEMATICS - SPRING 2017, Assignment Week 3"
+author: "Ann Liu-Ferrara"
+date: "February 21, 2017"
+output: 
+  html_document
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Problem set 1
+
+(1) What is the rank of the matrix A?
+
+  The rank of the matrix A is 4. It is a linearly independent matrix.
+
+```{r echo=TRUE}
+library(Matrix)
+A <- matrix(c(1, -1, 0, 5, 2, 0, 1, 4, 3, 1, -2, -1, 4, 3, 1, -3), nrow = 4)
+A
+rankMatrix(A)
+```
+(2) Given an m x n matrix where m > n, what can be the maximum rank? The minimum rank, assuming that the matrix is non-zero?
+
+  The maximum rank is the minimum of m and n, since m > n, the maximum rank is n. The minimum rank for a non-zero matrix is 1.
+
+(3) What is the rank of matrix B?
+
+  The rank of matrix B is 1, as matrix B is not a linearly independent matrix.
+```{r echo=TRUE}
+B <- matrix(c(1, 3, 2, 2, 6, 4, 1, 3, 2), nrow = 3)
+B
+rankMatrix(B)
+
+```
+## Problem set 2
+
+Compute the eigenvalues and eigenvectors of the matrix A. You'll need to show your work. You'll need to write out the characteristic polynomial and show your solution.
+```{r echo=TRUE}
+A <- matrix(c(1, 0, 0, 2, 4, 0, 3, 5, 6), nrow = 3)
+A
+```
+
+${det}\left(A-\lambda \,I\right)\,=\,0?$
+
+The characteristic equation of the matrix
+
+$\left(\begin{array}{ccc}1&2&3\\0&4&5\\0&0&6\end{array}\right)$ 
+
+is
+
+$\text{det}\left(\begin{array}{ccc}1-\lambda &2&3\\0&4-\lambda &5\\0&0&6-\lambda \end{array}\right)=0$
+
+Expanding the determinant,
+
+$\left(1-\lambda\right) [\left(4-\lambda \right)\left(6-\lambda \right)-5\times 0] + 2[0 \times \left(6-\lambda \right)-5\times 0] + 3[0\times0 - 0\left(4-\lambda \right)]=0$
+
+$\lambda_1=6,\lambda_2=4,\lambda_3=1$
+
+Compute the eigenvectors:
+
+If $\lambda_1=6$ and set X = 1, then solve the equation:
+
+$\left(\begin{array}{ccc}-5&2&3\\0&-2&5\\0&0&0\end{array}\right)\left(\begin{array}{c}X\\Y\\Z\end{array}\right)=\left(\begin{array}{c}0\\0\\0\end{array}\right).$
+
+-5 + 2Y + 3Z = 0
+
+-2Y + 5Z = 0
+
+X = 1, Y = $\frac{25}{16}$, Z = $\frac{5}{8}$
+
+Scale up, the eigenvector is (16, 25, 10)
+
+Same calculations for $\lambda_2=4$ and $\lambda_3=1$, the eigenvectors are (2, 3, 0) and (1, 0, 0).
+
+## Testing:
+```{r echo=TRUE}
+ev <- eigen(A)
+# extract components
+(values <- ev$values)
+
+(vectors <- ev$vectors)
+```
+
+Reference: 
+
+http://wwwf.imperial.ac.uk/metric/metric_public/matrices/eigenvalues_and_eigenvectors/eigenvalues2.html
+
+https://cran.r-project.org/web/packages/matlib/vignettes/eigen-ex1.html
+
+
