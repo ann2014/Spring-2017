@@ -1,0 +1,53 @@
+---
+title: "Assignment - Tidying and Transforming Data - Week 5"
+author: "Ann Liu-Ferrara"
+date: "March 1, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+The chart above describes arrival delays for two airlines across five destinations. Your task is to:
+(1) Create a .CSV file (or optionally, a MySQL database!) that includes all of the information above. You're encouraged to use a "wide" structure similar to how the information appears above, so that you can practice tidying and transformations as described below.
+
+(2) Read the information from your .CSV file into R, and use tidyr and dplyr as needed to tidy and transform your data.
+
+```{r echo = TRUE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# read .csv file
+(flight_df<- tbl_df(read.csv(file="fly.csv",head=T, sep=",")))
+
+# tidy data by putting city names as values in column 'city', and set up 'delayed' and 'on time' as variable, and spread into columns. 
+g <- flight_df %>%  
+  gather(City, flights, 3:ncol(flight_df), -Status) %>%   
+      spread(Status, flights)
+
+# rename the last 2 variables
+names(g)[3:4] <- c('Delayed', 'OnTime')
+```
+
+(3) Perform analysis to compare the arrival delays for the two airlines.
+
+```{r echo=TRUE}
+
+# compare delays using the mean, sum, min, and max data from both airlines.
+g %>% 
+  group_by(Company) %>%
+      summarise_each(funs(mean, sum, min, max), Delayed) 
+   
+      
+# visualize the delayed flights by city by company
+ggplot(data = g) +
+  geom_point(aes(x = City, y = Delayed), color = 'blue', size = 3) +
+  facet_grid(. ~ Company, scales="free") +
+  coord_flip()
+
+```
+
+Conclusion:
+
+Overall comparison of the two airlines, ALASKA has less delays comparing to AM WEST with lower mean, totall delays, and the minimum and maximum delay records by cities.
