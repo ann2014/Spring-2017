@@ -51,7 +51,7 @@ Solve for $\hat{x}$ in R using the above two computed matrices.
 As $A^TA$ $\hat{x}$ = $A^Tb$, so $\hat{x}$ = $A^Tb$ $A^TA^{-1}$
 
 ```{r echo = TRUE}
-
+# calculate xhat called leastSqr
 (leastSqr <- solve(ata) %*% atb)
 
 ```
@@ -125,11 +125,13 @@ isTRUE(all.equal(e, (b - p)))
 Show that the error e is orthogonal to p and to each of the columns of A.
 ```{r echo = TRUE}
 
-(t(e) %*% p)
-isTRUE(all.equal(e, (b - p)))
+# the error e is orthogonal to p and to each of the columns of A when the transpose of e 
+# 0 means the angle between them is 90 degrees
+t(e) %*% p
+t(e) %*% A[, 1]
+t(e) %*% A[, 2]
 
 ```
-
 
 ## Problem Set 2
 
@@ -139,5 +141,37 @@ Write an R markdown script that takes in the auto-mpg data, extracts an A matrix
 
 ```{r  echo=TRUE}
 
+# read in data table, and rename
+auto.mpg <- read.table('auto-mpg.data', quote='\'', comment.char='')
+names(auto.mpg) <- c('displacement', 'horsepower', 'weight', 'acceleration', 'mpg')
+head(auto.mpg)
+
+# create A and b
+A <- data.matrix(auto.mpg[1:4])
+b <- data.matrix(auto.mpg[5])
+A <- cbind(1, A)
+
+# compute A^TA and A^Tb
+(ata <- t(A) %*% A)
+(atb <- t(A) %*% b)
+
+# calculate xhat
+(leastSqr <- solve(ata) %*% atb)
+
+# calculate the squared error
+(errSqr <- sum((b - A %*% leastSqr)^2))
+
+# the least square equation for 'displacement', 'horsepower', 'weight', 'acceleration' expressing 'mpg'
+paste0('mpg = ', round(leastSqr[2, 1], digits=2), '*displacement + (', 
+                     round(leastSqr[3, 1], digits=2), '*horsepower) + (', 
+                     round(leastSqr[4, 1], digits=2), '*weight) + (',           
+                     round(leastSqr[5, 1], digits=2), '*acceleration) + (', 
+                     round(leastSqr[1, 1], digits=2), ')')
+
 ```
 
+
+
+Reference:
+
+https://github.com/wwells/CUNY_DATA_605/blob/master/Week05/WWells_Assign5.Rmd
