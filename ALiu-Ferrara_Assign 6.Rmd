@@ -43,14 +43,17 @@ if (!require('stringr')) install.packages('stringr')
 if (!require('tm')) install.packages('tm')
 if (!require('RTextTools')) install.packages('RTextTools')
 
-Shakespeare <- 'Shakespeare.txt'
-ebook <- readLines(Shakespeare)
+sample.text <- 'assign6.sample.txt'
+ebook <- readLines(sample.text)
 length(ebook)
 ebook <- str_c(ebook, collapse = " ")
 
-ProbWords <- function (data, n = 1) {
+ProbWords <- function (One_or_two_Words) {
+  searchWords <- One_or_two_Words
+  words.count <- sapply(strsplit(searchWords, " "), length)
+  
   # convert documents into a corpus
-  doc.vec <- VectorSource(data)
+  doc.vec <- VectorSource(ebook)
   doc.corpus <- Corpus(doc.vec)
   summary(doc.corpus)
   
@@ -61,29 +64,34 @@ ProbWords <- function (data, n = 1) {
   doc.corpus <- tm_map(doc.corpus, stripWhitespace)
   
   # tokenize, term document matrix
-  xgramTokenizer <- function(x) unlist(lapply(ngrams(words(x), n), paste, collapse = " "), use.names = FALSE)
+  xgramTokenizer <- function(x) unlist(lapply(ngrams(words(x), words.count), paste, collapse = " "), use.names = FALSE)
   tdm <- TermDocumentMatrix(doc.corpus, control = list(tokenize = xgramTokenizer))
   
-  # create df
-  df <- sort(slam::row_sums(tdm), decreasing = TRUE)
-  df <- data.frame(word=names(df), freq=df)
-  head(df)
+  # create frequency table for ngrams
+  dcount <- sort(slam::row_sums(tdm), decreasing = TRUE)
+  dfreq <- data.frame(word = names(dcount), freq = dcount)
   
-  # incase ngram, get freq of one word for prob calc
-  tdmfreq <- TermDocumentMatrix(doc.corpus)
-  denom.df <- slam::row_sums(tdmfreq)
-  denom.df <- data.frame(word=names(denom.df), freq=denom.df)
+  # counts words base for probability calculation
+  wcount <- TermDocumentMatrix(doc.corpus)
+  wordfreq <- slam::row_sums(wcount)
+  wordfreq <- data.frame(word = names(wordfreq), freq = wordfreq)
   
-  # calc probability
-  df$probability <- round(df$freq / sum(denom.df$freq), 5)
-  rownames(df) <- NULL
+  # calculate probability
+  dfreq$prob <- round(dfreq$freq / sum(wordfreq$freq), 5)
+  rownames(dfreq) <- NULL
   
-  head(df)
-  
+  rev_searchWords <- paste0(strsplit(searchWords, ' ')[[1]][2], ' ', strsplit(searchWords, ' ')[[1]][1])
+  dfreq %>% 
+    dplyr::filter(word == searchWords| word == rev_searchWords) %>%
+      dplyr::summarize(Freq = sum(freq), Prob = sum(prob))
+
 }
 
-ProbWords(ebook, 1)
-ProbWords(ebook, 2)
+# Enter one word
+ProbWords('the')
+
+# Enter 2 words, the order doesn't matter, the proabilities of the 2 words in different orders were combined.
+ProbWords('said he')
 
 ```
 
