@@ -1,0 +1,110 @@
+---
+title: "Data 607 Assignment 7 - Working with XML and JSON in R"
+author: "Ann Liu-Ferrara"
+date: "March 15, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Pick three of your favorite books on one of your favorite subjects. At least one of the books should have more than one author. For each book, include the title, authors, and two or three other attributes that you find interesting.Take the information that you've selected about these three books, and separately create three files which store the book's information in HTML (using an html table), XML, and JSON formats (e.g. "books.html",
+"books.xml", and "books.json"). To help you better understand the different file structures, I'd prefer that you create each of these files "by hand" unless you're already very comfortable with the file formats.
+Write R code, using your packages of choice, to load the information from each of the three sources into
+separate R data frames. Are the three data frames identical?
+
+All Books are from Project Gutenberg http://www.gutenberg.org
+
+Book 1 in XML format
+
+```{r echo = TRUE}
+book1 <- readLines(con <- file("For_the_sake_of_the_school.txt", encoding = "UTF-8"), skipNul = TRUE)
+close(con)
+book1 <- as.data.frame(book1[which(book1!="")])
+names(book1) <- 'Content'
+
+library(XML)
+
+xml <- xmlTree()
+xml$addTag("document", close=FALSE)
+xml$addTag("Author", "Angela Brazil")
+xml$addTag("Title", "FOR THE SAKE OF THE SCHOOL")
+xml$addTag("Release Date:", "March 3, 2007 ")
+xml$addTag("Language:", "English")
+xml$addTag("URL:", "http://www.gutenberg.org/files/20730/20730-h/20730-h.htm")
+
+# read in novel
+for (i in 1:nrow(book1)) {
+# xml$addTag("row", close=FALSE)
+ for (j in names(book1)) {
+   xml$addTag(j, book1[i, j])
+ }
+  # xml$closeTag()
+}
+xml$closeTag()
+
+# view the result
+saveXML(xml, file = "For_the_sake_of_the_school.xml", encoding = "UTF-8")
+
+# read in the xml file
+xmlRead <-
+  getURL("https://raw.githubusercontent.com/Jennier2015/DATA-607/master/Week%207%20Assignment/books.xml")
+books.xml <- xmlParse(xml.URL)
+books_xml <- xmlToDataFrame(books.xml)
+books_xml
+
+```
+
+Book 2 in HTML format
+```{r echo = TRUE}
+library(R2HTML)
+
+book2 <- readLines(con <- file("JosBoys.txt", encoding = "UTF-8"), skipNul = TRUE)
+close(con)
+book2 <- as.data.frame(book2[which(book2!="")])
+names(book2) <- 'NULL'
+
+tmpfic= HTMLInitFile(outdir = './', filename = "JosBoys", extension = 'html', 
+                     CSSFile="http://www.stat.ucl.ac.be/R2HTML/R2HTML.css")
+HTML(as.title("Jo's Boys"), file=tmpfic)
+HTML("Author: Louisa May Alcott", file=tmpfic)
+HTML("Release Date: October, 2002", file=tmpfic)
+HTML("Language: English", file=tmpfic)
+HTML(book2, file = tmpfic, row.names = FALSE)
+browseURL(tmpfic)
+
+```
+Book 3 in JSON format
+
+Title: Gunpowder Treason and Plot And Other Stories for Boys
+Author: Harold Avery
+        Fred Whishaw
+        R. B. Townshend
+Release Date: June 6, 2011 [EBook #36341]
+Language: English
+
+```{r echo = TRUE}
+library(jsonlite)
+
+book3 <- readLines(con <- file("GunpowderTreason_s.txt", encoding = "UTF-8"), skipNul = TRUE)
+close(con)
+
+names(book3) <- 'Content'
+book <- NULL
+book <- data.frame(Title = 'Gunpowder Treason and Plot And Other Stories for Boys', 
+                   Author <- data.frame('Harold Avery', 'Fred Whishaw', 'R. B. Townshend'),
+                   ReleaseDate = 'June 6, 2011 [EBook #36341]',
+                   Language = 'English')
+
+x <- NULL
+x <- jsonlite::toJSON(book, pretty=TRUE)                           
+cat(x)
+
+json.URL <-
+  getURL("https://raw.githubusercontent.com/Jennier2015/DATA-607/master/Week%207%20Assignment/books.json")
+books.json <- fromJSON(json.URL)
+books.json 
+
