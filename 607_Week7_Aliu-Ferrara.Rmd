@@ -102,9 +102,3 @@ book <- data.frame(Title = 'Gunpowder Treason and Plot And Other Stories for Boy
 x <- NULL
 x <- jsonlite::toJSON(book, pretty=TRUE)                           
 cat(x)
-
-json.URL <-
-  getURL("https://raw.githubusercontent.com/Jennier2015/DATA-607/master/Week%207%20Assignment/books.json")
-books.json <- fromJSON(json.URL)
-books.json 
-
