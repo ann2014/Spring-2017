@@ -1,0 +1,91 @@
+---
+title: "IS 605 FUNDAMENTALS OF COMPUTATIONAL MATHEMATICS - Assign 7"
+author: "Ann Liu-Ferrara"
+date: "March 16, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem Set
+
+Please write a function to compute the expected value and standard deviation of an array of values. Compare your results with that of R's mean and std functions. Please document your work in an RMarkdown file and ensure that you have good comments to help the reader follow your work.
+
+Now, consider that instead of being able to neatly fit the values in memory in an array, you have an infinite stream of numbers coming by. How would you estimate the mean and standard deviation of such a stream? Your function should be able to return the current estimate of the mean and standard deviation at any time it is asked. Your program should maintain these current estimates and return them back at any invocation of these functions.
+
+(Hint: You can maintain a rolling estimate of the mean and standard deviation and allow these to slowly change over time as you see more and more new values).
+```{r echo = TRUE}
+library(zoo)
+
+# create mean function
+meanFun <- function(x) {
+  sum(x)/length(x)
+}
+
+# compare meanFun() and mean()
+a <- c(0.1, 0.34, 0.004)
+mean(a)
+meanFun(a)
+
+# create sd function
+sdFun <- function(x) {
+  sqrt(sum((x - meanFun(x))^2)/(length(x) - 1))
+}
+
+# comparing the function sdFun() and sd()
+sdFun(a)
+sd(a)
+
+# rolling mean and sd
+rollingFun <- function(vec, width, FUN) 
+    sapply(seq_along(vec), function(i) if (i < width) NA else FUN(vec[i:(i-width+1)]))
+
+set.seed(1)
+vec <- sample(1:50, 50)
+
+# testing rolling mean
+rollingFun(vec, 1, meanFun)
+rollapply(vec, 1, mean)
+
+# testing rolling sd
+rollingFun(vec, 2, sdFun)
+rollapply(vec, 2, sd)
+```
+
+Using last computed E(X) and and the new value to compute rolling mean and rolling standard deviation
+
+```{r echo = TRUE}
+# rolling mean
+rolling.mean <- function(x) {
+  n <- length(x)
+  (x[n] + meanFun(x[1:n-1]) * (n - 1))/n
+}
+
+# test
+rolling.mean(a)
+mean(a)
+
+# rolling sd
+# sd = sqrt(E(X^2) - E(X)^2)
+rolling.sd <- function(x) {
+n = length(x)
+sqrt(n * sum(x^2) - sum(x)^2)/n
+}
+
+# test running sd. The test fails as the comparisons of the below 2 functions are not equal. 
+rolling.sd(a)
+sd(a)
+
+```
+
+Reference:
+
+http://math.stackexchange.com/questions/102978/incremental-computation-of-standard-deviation
+
+https://www.r-bloggers.com/using-r-for-introductory-statistics-chapter-5/
+
+https://www.mathsisfun.com/data/standard-deviation-formulas.html
+
+https://www.johndcook.com/blog/standard_deviation/
