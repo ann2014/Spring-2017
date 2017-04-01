@@ -1,0 +1,30 @@
+---
+title: "Data 607 Week 9"
+author: "Ann Liu-Ferrara"
+date: "March 28, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Assignment - Web APIs
+
+The New York Times web site provides a rich set of APIs, as described here: http://developer.nytimes.com/docs
+You'll need to start by signing up for an API key.
+Your task is to choose one of the New York Times APIs, construct an interface in R to read in the JSON data, and transform it to an R dataframe.
+```{r echo = TRUE}
+options(stringsAsFactors = FALSE)
+library(jsonlite)
+library(httr)
+library(DT)
+
+  url <- "https://api.nytimes.com/svc/books/v3/lists/best-sellers/history.json"
+  api.key <- "da96d464ccb8464aa68d08000fc49d8a"
+  url <- paste0(url, '?api-key=', api.key)
+  df <- jsonlite::fromJSON(url, flatten = TRUE)
+  datatable(df$results)
+  
+```
+
