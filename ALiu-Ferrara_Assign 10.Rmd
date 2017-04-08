@@ -1,0 +1,104 @@
+---
+title: "IS 605 FUNDAMENTALS OF COMPUTATIONAL MATHEMATICS - Assignment 10"
+author: "Ann Liu-Ferrara"
+date: "April 3, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Playing with PageRank
+
+You'll verify for yourself that PageRank works by performing calculations on a small universe of web pages.
+Let's use the 6 page universe that we had in the course notes. For this directed graph, perform the following calculations in R.
+. Form the A matrix. Then, introduce decay and form the B matrix as we did in the course notes.
+```{r echo = TRUE}
+(A <- matrix(c(0, 0, 1/3, 0, 0, 0,
+              1/2, 0, 1/3, 0, 0, 0,
+              1/2, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 1/2, 1,
+              0, 0, 1/3, 1/2, 0, 0,
+              0, 0, 0, 1/2, 1/2, 0), nrow = 6, byrow = TRUE))
+
+colSums(A)
+# ensure row sums to one, so the matrix converges properly, replace 'dangling node' row 2 with value 1/6 for each row
+(A <- matrix(c(0, 1/6, 1/3, 0, 0, 0,
+              1/2, 1/6, 1/3, 0, 0, 0,
+              1/2, 1/6, 0, 0, 0, 0,
+              0, 1/6, 0, 0, 1/2, 1,
+              0, 1/6, 1/3, 1/2, 0, 0,
+              0, 1/6, 0, 1/2, 1/2, 0), nrow = 6, byrow = TRUE))
+colSums(A)
+(B <- 0.85 * A + 0.15/6)
+
+```
+. Start with a uniform rank vector r and perform power iterations on B till convergence. That is, compute the solution r = B$^n$ × r. Attempt this for a sufficiently large n so that r actually converges.
+```{r echo = TRUE}
+r <- c(1/6, 1/6, 1/6, 1/6, 1/6, 1/6)
+library(expm) 
+convergence <- 0
+i <- 1
+while(!convergence & i < 50) {
+convergence <- isTRUE(all.equal(B %^% i %*% r, B %^% (i + 1) %*% r)) == 'TRUE'
+ i = i + 1
+}
+print(i)
+
+# the covergence occurs after 32 iterations
+(isTRUE(all.equal(B %^% 32 %*% r, B %^% 33 %*% r)))
+
+```
+
+. Compute the eigen-decomposition of B and verify that you indeed get an eigenvalue of 1 as the largest eigenvalue and that its corresponding eigenvector is the same vector that you obtained in the previous power iteration method. Further, this eigenvector has all positive entries and it sums to 1.
+```{r echo = TRUE}
+(eigen.val <- eigen(B))
+# the largest eigenvalue is 1
+max.value <- eigen.val$values[which.max(eigen.val$values)]
+(isTRUE(all.equal(as.numeric(max.value), 1)))
+
+eigen.vec <- eigen.val$vectors[, which.max(eigen.val$values)]
+eigen.vec <- as.numeric(eigen.vec/sum(eigen.vec))
+
+# the eigenvector is the same as the one obtained in the previous power iteration 
+(isTRUE(all.equal(as.vector(t(B %^% 32 %*% r)), eigen.vec)))
+
+# this eigenvector has all positive entries
+if(any(eigen.vec < 0)) stop ("there is negative entries")
+
+# sums to 1 
+isTRUE(all.equal(sum(eigen.vec), 1))
+```
+
+. Use the graph package in R and its page.rank method to compute the Page Rank of the graph as given in A. Note that you don't need to apply decay. The package starts with a connected graph and applies decay internally. Verify that you do get the same PageRank vector as the two approaches above.
+
+```{r echo = TRUE}
+library(igraph)
+# re-create matrix A without considering decay
+(A <- matrix(c(0, 0, 1/3, 0, 0, 0,
+              1/2, 0, 1/3, 0, 0, 0,
+              1/2, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 1/2, 1,
+              0, 0, 1/3, 1/2, 0, 0,
+              0, 0, 0, 1/2, 1/2, 0), nrow = 6))
+g <- graph_from_adjacency_matrix(A, weighted = T, mode = 'directed')
+plot(g)
+page.rank(g)$vector
+
+# compare to the eigenvector methods
+(isTRUE(all.equal(eigen.vec, page.rank(g)$vector)))
+
+# compare to the power iteration method
+(isTRUE(all.equal(as.vector(t(B %^% 32 %*% r)), page.rank(g)$vector)))
+```
+
+Reference:
+
+https://rstudio-pubs-static.s3.amazonaws.com/122129_2fea566719494d9b830d26ce210c40e0.html
+
+http://rstudio-pubs-static.s3.amazonaws.com/223356_ae2392ea92fa49b3b3c9e8dcc2b240a5.html
+
+https://github.com/wwells/CUNY_DATA_605/blob/master/Week10/WWells_Assign10.Rmd
+
+
