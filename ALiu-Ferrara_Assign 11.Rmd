@@ -1,0 +1,105 @@
+---
+title: "IS 605 FUNDAMENTALS OF COMPUTATIONAL MATHEMATICS - Assignment 11"
+author: "Ann Liu-Ferrara"
+date: "April 8, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## LINEAR REGRESSION IN R
+
+Using R's lm function, perform regression analysis and measure the significance of the independent variables for the following two data sets. In the first case, you are evaluating the statement that we hear that Maximum Heart Rate of a person is related to their age by the following equation:
+
+MaxHR = 220 -???? Age
+
+You have been given the following sample:
+   Age 18  23  25  35  65  54  34  56  72  19  23  42  18  39  37
+MaxHR 202 186 187 180 156 169 174 172 153 199 193 174 198 183 178
+
+Perform a linear regression analysis fitting the Max Heart Rate to Age using the lm function in R. What is the resulting equation? Is the effect of Age on Max HR significant? What is the significance level? Please also plot the fitted relationship between Max HR and Age.
+
+```{r echo = TRUE}
+age <- c(18, 23, 25, 35, 65, 54, 34, 56, 72, 19, 23, 42, 18, 39, 37)
+MaxHR <- c(202, 186, 187, 180, 156, 169, 174, 172, 153, 199, 193, 174, 198, 183, 178)
+df <- data.frame(age, MaxHR)
+(summary(lm(MaxHR ~ age, df)))
+
+# regression model
+MaxHR = -0.79773 * age + 210.04846
+
+# p-value 3.848e-08 < 0.05, so the effect of Age on Max HR is significant and the result rejected the null hypothsis.
+# the given equation MaxHR = 220 - Age doesn't show any relationship between MaxHr and Age, so it is not correct.
+
+library(ggplot2)
+ggplot(df, aes(age, MaxHR)) + 
+  geom_point() +
+  geom_smooth(se = FALSE, method = "lm") +
+  ggtitle('Regression model fit of MaxHR and Age')
+
+```
+
+Using the Auto data set from Assignment 5 (also attached here) perform a Linear Re-gression analysis using mpg as the dependent variable and the other 4 (displacement, horse-power, weight, acceleration) as independent variables. What is the final linear regression fit equation? Which of the 4 independent variables have a significant impact on mpg? What are their corresponding significance levels? What are the standard errors on each of the coeficients? Please perform this experiment in two ways. First take any random 40 data points from the entire auto data sample and perform the linear regression fit and measure the 95% confidence intervals. Then, take the entire data set (all 392 points) and perform linear regression and measure the 95% confidence intervals. Please report the resulting fit equation, their significance values and confidence intervals for each of the two runs.
+
+```{r echo = TRUE}
+# read in data
+auto.mpg <- read.table('auto-mpg.data', quote='\'', comment.char='')
+names(auto.mpg) <- c('displacement', 'horsepower', 'weight', 'acceleration', 'mpg')
+head(auto.mpg)
+str(auto.mpg)
+lm.auto <- summary(lm(mpg ~ displacement + horsepower + weight + acceleration, auto.mpg))
+
+# random select 40 samples and do regression modeling
+set.seed(234)
+df.s <- auto.mpg[sample(1:nrow(auto.mpg), 40, replace = F), ]
+str(df.s)
+
+lm.s <- summary(lm(mpg ~ displacement + horsepower + weight + acceleration, df.s))
+```
+
+The population regression fit equation:
+
+mpg = -0.0060009 * displacement -0.0436077 * horsepower -0.0052805 * weight -0.0231480 * acceleration + 45.2511397
+
+The sample regression fit equation:
+
+mpg.s = -0.024174 * displacement -0.051365 * horsepower -0.001947 * weight -0.032067 * acceleration + 40.075930
+
+```{r echo = TRUE}
+# significance: for population 392 data points, only weight and horsepower have p-value < .05 and show significance, p-values are 2.3e-10 and 0.00885 respectively; and for 40 samples, there are no variables associated with p-value < 0.05
+# significance: population
+(lm.auto$coefficients[, 4])
+# significance: sample
+(lm.s$coefficients[, 4])
+
+
+# The standard errors
+# population
+(lm.auto$coefficients[, 2])
+# The standard errors
+# sample
+(lm.s$coefficients[, 2])
+
+# confident intervals 95% 
+# population
+confint(lm(mpg ~ displacement + horsepower + weight + acceleration, auto.mpg), level = .95)
+# confident intervals 95% 
+# sample
+confint(lm(mpg ~ displacement + horsepower + weight + acceleration, df.s), level = .95)
+
+```
+Conclusion of comparing the two regression models with the whole population 392 data points and the 40 samples:
+
+1. the model using whole data sets has high significance level than the model with 40 samples.
+
+2. the sample variables are associated with bigger standard errors than the population variables. 
+
+3. the Population independent variables have smaller ci compared to those of the sample.
+
+Reference:
+
+https://rstudio-pubs-static.s3.amazonaws.com/124425_0af71d8e326144cdadcb169bccec8083.html
+
+https://github.com/wwells/CUNY_DATA_605/blob/master/Week11/WWells_Assign11.Rmd
