@@ -17,6 +17,7 @@ For this project, you can start with a spam/ham dataset, then predict the class 
 ```{r echo = TRUE}
 suppressPackageStartupMessages(require(RTextTools))
 suppressPackageStartupMessages(require(tm))
+options(warn = -1)
 # functions to get email body  Chapter 3 of Conway & White (2012)
 get.msg <- function(path.dir)
 {
@@ -30,7 +31,6 @@ get.msg.try <- function(path.dir)
 {
   con <- file(path.dir, open="rt", encoding="latin1")
   text <- readLines(con)
-  options(warn=-1)
   msg <- tryCatch( text[seq(which(text=="")[1]+1,length(text),1)],
                    error=function(e) { 9999 }, finally={} )
   close(con)
@@ -92,11 +92,6 @@ train.data  <- rbind(easy_ham.dfr, hard_ham.dfr, spam.dfr)
 train.num   <- nrow(train.data)
 train.data  <- rbind(train.data, easy_ham_2.dfr, hard_ham_2.dfr, spam_2.dfr)
 names(train.data) <- c("text", "outcome")
-spam.str <- paste0("Jurka_03_spam.rda")
-if( !file.exists(spam.str) )
-{
-  save(train.data, train.num, file=spam.str)
-}
 
 set.seed(2012)
 train_out.data <- train.data$outcome
