@@ -109,7 +109,7 @@ df.svm <- cbind(data.frame(model = 'SVM',
                         TN = svm.true.neg,
                         FP = svm.false.pos), svm.analytic@algorithm_summary[2, ])
 names(df.svm)[6:8] <- c("PRECISION", "RECALL", "FSCORE")
-df <- rbind(df.maxent, df.svm)
+(df <- rbind(df.maxent, df.svm))
 
 
 ```
