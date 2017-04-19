@@ -85,12 +85,20 @@ maxent_ham.doc  <- maxent.doc[maxent.doc$MANUAL_CODE==0, ]
 (maxent.false.neg<- nrow(maxent_spam.doc[maxent_spam.doc$CONSENSUS_CODE==0,]) / nrow(maxent_spam.doc))
 (maxent.true.neg <- nrow(maxent_ham.doc[maxent_ham.doc$CONSENSUS_CODE==0,]) / nrow(maxent_ham.doc))
 (maxent.false.pos<- nrow(maxent_ham.doc[maxent_ham.doc$CONSENSUS_CODE==1,]) / nrow(maxent_ham.doc))
+(maxent.acc <- (nrow(maxent_spam.doc[maxent_spam.doc$CONSENSUS_CODE==1,]) + nrow(maxent_ham.doc[maxent_ham.doc$CONSENSUS_CODE==0,]))/nrow(maxent.doc))
+
 df.maxent <- cbind(data.frame(model = 'MAXENT', 
-                        TP = maxent.true.pos,
-                        FN = maxent.false.neg,
-                        TN = maxent.true.neg,
-                        FP = maxent.false.pos), maxent.analytic@algorithm_summary[2, ])
-names(df.maxent)[6:8] <- c("PRECISION", "RECALL", "FSCORE")
+                        TP = nrow(maxent_spam.doc[maxent_spam.doc$CONSENSUS_CODE==1,]),
+                        FP = nrow(maxent_ham.doc[maxent_ham.doc$CONSENSUS_CODE==1,]),
+                        TN = nrow(maxent_ham.doc[maxent_ham.doc$CONSENSUS_CODE==0,]),
+                        FN = nrow(maxent_spam.doc[maxent_spam.doc$CONSENSUS_CODE==0,]),
+                        TPR = maxent.true.pos,
+                        FNR = maxent.false.neg,
+                        TNR = maxent.true.neg,
+                        FPR = maxent.false.pos,
+                        ACC = maxent.acc), 
+                        maxent.analytic@algorithm_summary[2, ])
+names(df.maxent)[11:13] <- c("PRECISION", "RECALL", "FSCORE")
 
 # svm model
 svm.model       <- train_model(container, "SVM")
@@ -103,13 +111,23 @@ svm_ham.doc   <- svm.doc[svm.doc$MANUAL_CODE==0, ]
 (svm.false.neg <- nrow(svm_spam.doc[svm_spam.doc$CONSENSUS_CODE==0,]) / nrow(svm_spam.doc))
 (svm.true.neg  <- nrow(svm_ham.doc[svm_ham.doc$CONSENSUS_CODE==0,]) / nrow(svm_ham.doc))
 (svm.false.pos <- nrow(svm_ham.doc[svm_ham.doc$CONSENSUS_CODE==1,]) / nrow(svm_ham.doc))
+(svm.acc <- (nrow(svm_spam.doc[svm_spam.doc$CONSENSUS_CODE==1,]) + nrow(svm_ham.doc[svm_ham.doc$CONSENSUS_CODE==0,]))/nrow(svm.doc))
 df.svm <- cbind(data.frame(model = 'SVM', 
-                        TP = svm.true.pos,
-                        FN = svm.false.neg,
-                        TN = svm.true.neg,
-                        FP = svm.false.pos), svm.analytic@algorithm_summary[2, ])
-names(df.svm)[6:8] <- c("PRECISION", "RECALL", "FSCORE")
+                        TP = nrow(svm_spam.doc[svm_spam.doc$CONSENSUS_CODE==1,]),
+                        FP = nrow(svm_ham.doc[svm_ham.doc$CONSENSUS_CODE==1,]),
+                        TN = nrow(svm_ham.doc[svm_ham.doc$CONSENSUS_CODE==0,]),
+                        FN = nrow(svm_spam.doc[svm_spam.doc$CONSENSUS_CODE==0,]),
+                        TPR = svm.true.pos,
+                        FNR = svm.false.neg,
+                        TNR = svm.true.neg,
+                        FPR = svm.false.pos,
+                        ACC = svm.acc), 
+                svm.analytic@algorithm_summary[2, ])
+names(df.svm)[11:13] <- c("PRECISION", "RECALL", "FSCORE")
 (df <- rbind(df.maxent, df.svm))
 
-
 ```
+
+Conclusion:
+
+1. In filtering out the spams, accuracies in both maxent and svm is close, and F-score is higher with svm model 96% vs. 94%. I consider that it is more important when a ham is filtered out as spam than let a few spams skip out, in case important emails are filtered out. So false postive would be considered with higher priority than false negative. Maxent model has false postive 0.7% vs. svm 1.2%, I will select maxent model over svm.
