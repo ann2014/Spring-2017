@@ -1,0 +1,35 @@
+---
+title: "DATA 607 Week 11 Discussion - Recommender System"
+author: "Ann Liu-Ferrara"
+date: "April 20, 2017"
+output: html_document
+---
+
+## TripAdvisor  Scenario Design analysis
+
+1) Who are the target users?
+
+TripAdvisor's target users are the people traveling for vacations.
+
+2) What are the key goals?
+
+Satisfy travel's needs on transporations, hotel bookings, sightseeing, and restaurant selections.
+
+3) How can I help to accomplish those goals? 
+
+Analyze traveler behaviors and tailor trip plans for them.
+
+## Reverse engineering
+
+The current ranking system qualfies 3 factors: 
+
+1. Quality of reviews: Obviously, positive reviews are important. However, it's unclear what makes a positive review particularly qualitative.
+2. Quantity of reviews: The more reviews you have, the higher you rank.
+3. Age of reviews: Recent reviews are prioritized, and older reviews have less impact over time.
+
+There is much to do by creating a customer-centered recommendtion system, so travelers feel more relevant with the recommender system.
+
+
+## Recommendations
+
+In Feb 2016, TripAdvisor revised their Popularity Ranking Algorithm to fit better customers' needs, but without customization based on customers' behavior analysis and build a predictive model in giving recommendations, there is still long way to go in touching customers' heart.
