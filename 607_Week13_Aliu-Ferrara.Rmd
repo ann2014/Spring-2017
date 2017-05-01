@@ -1,0 +1,41 @@
+---
+title: "Week 13 assignment - NoSQL migration"
+author: "Ann Liu-Ferrara"
+date: "April 28, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## MangoBD
+
+In this assignment, I will take flights database from MySql and migrate it to MongoDB database, and describe the advantages and disadvantages of storing the data in a relational database vs. your NoSQL database.
+
+```{r echo= TRUE}
+library(RMongo)
+library(rjson)
+# connect db
+mongo <- mongoDbConnect('test', '127.0.0.1', 27017)
+
+# read flights
+flights <- read.csv("flights.csv")
+L=lapply(split(flights,rownames(flights)),as.list)
+names(L)=NULL
+df <- 
+# insert flights
+for (i in 1:NROW(L)) {
+dataJSON = toJSON(L[[i]])
+output <- dbInsertDocument(mongo, "flights", dataJSON)
+}
+output <- dbGetQuery(mongo, 'flights', '{"depart": "Seattle"}')
+print(output)
+dbDisconnect(mongo)
+
+
+```
+
+References:
+
+http://stackoverflow.com/questions/19564321/how-to-send-multiple-documents-using-rmongo
