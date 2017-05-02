@@ -9,9 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## MangoBD
-
-In this assignment, I will take flights database from MySql and migrate it to MongoDB database, and describe the advantages and disadvantages of storing the data in a relational database vs. your NoSQL database.
+# In this assignment, I will take flights data from a csv file and migrate it to MongoDB database, and describe the advantages and disadvantages of storing the data in a relational database vs. NoSQL database.
 
 ```{r echo= TRUE}
 library(RMongo)
@@ -36,6 +34,37 @@ dbDisconnect(mongo)
 
 ```
 
+
+# Advantages of NoSQL vs. relational database:
+
+1, flexibility, easy to manage than relational database; 
+
+2, mostly open source and low-cost; 
+
+3, scalability in supporting Mapreduce; 
+
+4, less complexity, no relational database set up; and
+
+5, grow rapidly.
+
+
+Disadvantages of NoSQL vs. relational database, such as MySQL:
+
+1, Not as maturing as MySQL due to short history;
+
+2, lack of reporting tools;
+
+3, lack of standardization in querying language and compatibility; and
+
+4, the community is not well defined.
+
+Conclusion:
+
+NoSQL data is the product of rapidly developed social media, big data, and web technologies, there is a need for more flexible structure and easier operation. It might not replace relational database, but grow as an important supplement to meet the demand in data storage.
+
+
 References:
 
 http://stackoverflow.com/questions/19564321/how-to-send-multiple-documents-using-rmongo
+
+http://www.monitis.com/blog/cc-in-review-the-key-differences-between-sql-and-nosql-dbs/
