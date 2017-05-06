@@ -1,0 +1,87 @@
+---
+title: "NUMERICAL INTEGRATION AND DIFFERENTIATION - ASSIGNMENT 13"
+author: "Ann Liu-Ferrara"
+date: "May 3, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Write a program to compute the derivative of f(x) = $x^3 + 2x^2$ at any value of x.
+
+Your function should take in a value of x and return back an approximation to the derivative of f(x) evaluated at that value. You should not use the analytical form of the derivative to compute it. Instead, you should compute this approximation using limits.
+
+  $$ f '(x) = \lim_{\Delta x\to 0} \frac{f(x + \Delta x) - f(x)}{\Delta x} $$
+  
+  
+$$ f '(x) = \lim_{\Delta x\to 0} \frac {\{ (x + \Delta x)^3 + 2(x + \Delta x)^2\} - \{ x^3 + 2x^2 \}}{\Delta x} $$
+  $$ f '(x) = \lim_{\Delta x\to 0} \frac {\{ (x + \Delta x)^3 + 2(x + \Delta x)^2\} - \{ x^3 + 2x^2 \}}{\Delta x} $$
+  let $\Delta x = 1/1000000$ then
+  
+   $$ f '(x) = 3x^2 + 4x$$
+```{r echo = TRUE}
+derivativeFun <- function(x) {
+  3 * x^2 + 4 * x
+}
+
+derivativeFun(1)
+derivativeFun(4)
+derivativeFun(10)
+```
+
+# Now, write a program to compute the area under the curve for the function $3x^2+4x$
+
+in the range x = [1, 3]. You should first split the range into many small intervals using some really small $\Delta x$ value (say 1e-6) and then compute the approximation to the area under the curve. Please solve these problems analytically (i.e. by working out the math) and submit your
+answers.
+
+```{r echo = TRUE}
+x <- seq(1, 3, by = 1/1000000)
+f <- function(x) 3 * x^2 + 4 * x
+(area <- sum(f(x)) * 1/1000000)
+
+```
+
+# Use integration by parts to solve for $\int sin(x)cos(x) dx$
+
+let u = sin(x) then du = cos(x) dx
+
+$$\int u du = u^2/2 + C = (sin(x))^2/2 + C$$
+
+# Use integration by parts to solve for $\int x^2e^x dx$
+
+let $u = x^2$ and $v = e^x$ then $$du = 2x dx$ and $dv = e^x dx$$
+
+$$\int u(x)v'(x)dx = u(x)v(x) - \int v(x)u'(x)dx$$
+$$\int x^2e^x dx = x^2e^x - \int e^x * 2x dx = x^2e^x - 2\int xe^x dx + c$$
+now solve $$\int xe^x dx$$
+let $u = x$, $du = dx$
+$$\int xe^x dx = xe^x - \int e^x dx = xe^x - e^x$$
+so $$\int x^2e^x dx = x^2e^x - 2(xe^x - e^x) + c = e^x(x^2 - 2x + 2) + c$$
+
+
+# What is $\frac{d}{dx}(x cos(x))$?
+
+$$\frac{d}{dx}(x cos(x)) = 1 * cos(x) -xsin(x) = cos(x) - xsin(x)$$
+
+# What is $\frac{d}{dx}e^{x^4}$?
+
+let $u = x^4$
+
+$$\frac{d}{dx}e^{x^4} = \frac{d}{dx} e^u = e^u \frac{du}{dx} = e^u * 4x^3 = e^{x^4}4x^3$$
+
+
+```{r echo=TRUE}
+
+```
+
+References:
+
+https://www.math.ucdavis.edu/~kouba/CalcOneDIRECTORY/defdersoldirectory/DefDerSol.html#SOLUTION 1
+
+https://github.com/wwells/CUNY_DATA_605/blob/master/Week13/WWells_Assign13.Rmd
+
+http://www.intmath.com/integration/3-area-under-curve.php 
+
+https://www.google.com/imgres?imgurl=https://i2.wp.com/mindyourdecisions.com/blog/wp-content/uploads/2015/08/sinxcosx-integral-solution1.png&imgrefurl=https://mindyourdecisions.com/blog/2015/08/09/the-perplexing-integral-of-sin-xcos-x-sunday-puzzle/&h=203&w=338&tbnid=_0jOeEFOscPAvM:&tbnh=126&tbnw=210&usg=__-azckwpWKTrrrnjXzvVCxlQNe7c=&vet=10ahUKEwjEiq6PqNrTAhVEQyYKHRkLDZEQ9QEIKzAA..i&docid=TYaToFcr25VTmM&sa=X&ved=0ahUKEwjEiq6PqNrTAhVEQyYKHRkLDZEQ9QEIKzAA
