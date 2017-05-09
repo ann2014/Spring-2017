@@ -18,18 +18,34 @@ library(rjson)
 mongo <- mongoDbConnect('test', '127.0.0.1', 27017)
 
 # read flights
-flights <- read.csv("flights.csv")
+flights <- read.csv("flights.csv", stringsAsFactors = FALSE)
 L=lapply(split(flights,rownames(flights)),as.list)
 names(L)=NULL
-df <- 
+
+# remove all rows
+# output <- dbRemoveQuery(mongo, 'flights', '{}')
+
 # insert flights
 for (i in 1:NROW(L)) {
 dataJSON = toJSON(L[[i]])
 output <- dbInsertDocument(mongo, "flights", dataJSON)
 }
-output <- dbGetQuery(mongo, 'flights', '{"depart": "Seattle"}')
+
+#output <- dbGetQuery(mongo, 'flights', '{"depart": "Seattle"}')
+# view all records in table flights
+output <- dbGetQuery(mongo, 'flights', '{}')
 print(output)
+
+# disconnect mongoDB
 dbDisconnect(mongo)
+flights <- flights[with(flights, order(arrive, depart, flighttime)), ]
+output <- output[, -2]
+output <- output[with(output, order(arrive, depart, flighttime)), ]
+output <- output[, c(1, 3, 2)]
+flights <- flights[, c(2, 1, 3)]
+
+# compare 2 databases
+all.equal(flights, output,check.attributes = FALSE)
 
 
 ```
