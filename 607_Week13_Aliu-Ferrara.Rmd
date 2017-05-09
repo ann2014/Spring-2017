@@ -38,13 +38,13 @@ print(output)
 
 # disconnect mongoDB
 dbDisconnect(mongo)
+
+# compare 2 databases
 flights <- flights[with(flights, order(arrive, depart, flighttime)), ]
 output <- output[, -2]
 output <- output[with(output, order(arrive, depart, flighttime)), ]
 output <- output[, c(1, 3, 2)]
 flights <- flights[, c(2, 1, 3)]
-
-# compare 2 databases
 all.equal(flights, output,check.attributes = FALSE)
 
 
