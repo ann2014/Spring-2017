@@ -13,6 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Geting 1000 doctor reviews in NYC area using Yelp Fusion API, and web scraping reviews from multiple web pages, calculating doctor sentiment scores by formula sum(postive reviews) - sum(negative reviews), and exploring the relationships between reviews and rating.
 
+Shiny app code: https://github.com/BDStat/AdvancedShiny
+
+
 ```{r echo = TRUE}
 
 library(httr)
@@ -25,7 +28,7 @@ library(yelpr)
 library(jsonlite)
 library(httr)
 library(purrr)
-
+library(plyr)
 source('Credential.R')
 
 yelp <- "https://api.yelp.com"
@@ -94,8 +97,8 @@ for(i in 1:20) {
 }
 
 set1 <- set1 %>% distinct(name, .keep_all = TRUE)
-# save(set1, file = "data.Rda")
-attach("~/data.Rda")
+save(set1, file = "data.Rda")
+attach("data.Rda")
 
 # Pulled from Hu and Liu-University of Illinois @ Chicago. See References
 pos <- scan('positive-words.txt', what='character', comment.char=';')
@@ -118,7 +121,7 @@ score.sentiment = function(sentences, good_text, bad_text, .progress='none')
     sentence = gsub('[[:cntrl:]]', '', sentence)
     sentence = gsub('\\d+', '', sentence)
     #to remove emojis
-    sentence <- iconv(sentence, 'UTF-8', 'ASCII')
+    # sentence <- iconv(sentence, 'UTF-8', 'ASCII')
     sentence = tolower(sentence)        
     # split into words. str_split is in the stringr package
     word.list = str_split(sentence, '\\s+')
@@ -155,8 +158,8 @@ score.sentiment = function(sentences, good_text, bad_text, .progress='none')
 #   for(each in surl) {
 #     # print(paste0("surl: ", each))
 #     htmlF <- read_html(each, simplifyVector = TRUE)
-#     reviews <- htmlF %>% 
-#       html_nodes('.review-content p')  %>% 
+#     reviews <- htmlF %>%
+#       html_nodes('.review-content p')  %>%
 #       html_text()
 #     
 #     # Call the function and return a data frame
@@ -165,78 +168,89 @@ score.sentiment = function(sentences, good_text, bad_text, .progress='none')
 #   # print(paste0("scores: ", scores))
 #   scores.df
 # }
-
+# 
 # save(scores.df, file = "scores.Rda")
 
 attach("scores.Rda")
 
-df <- ddply(scores.df, ~id, summarise
-      ,scores = sum(score))
+df <- ddply(scores.df, ~id, summarise, score = sum(score))
 df <- merge(df, set1)
-# save(df, file = "df.Rda")
-
-# Cut the text, just gets in the way
-plotdat <- df[c("rating", "scores", "review_count")]
-# Remove neutral values of 0
-plotdat <- plotdat[!plotdat$scores == 0, ]
-
-# Doctor Rating vs. Scores
-boxplot(scores ~ rating, data = df, col = "yellow",
-        main = "Doctor Rating vs. Scores",
-        xlab = "Rating",
-        ylab = "Scores")
-abline(h = 2, col = "green") 
-
-# Doctor Rating vs. Review Counts
-boxplot(review_count ~ rating, data = df, col = "yellow",
-        main = "Doctor Rating vs. Review Counts",
-        xlab = "Rating",
-        ylab = "Review Counts")
-abline(h = 2, col = "green") 
+save(df, file = "df.Rda")
 
 library(ggplot2)
-#scores histogram
-ggplot(data=plotdat, aes(x = scores)) + 
-  geom_histogram(aes(y =..density..), col="red", 
-                 #fill = 'green', 
-                 alpha = .2) + 
+
+# histogram for review counts
+ggplot(data=df, aes(x = review_count)) + 
+  geom_histogram(aes(y =..density..), col="red", alpha = .2) + 
   geom_density(col=1) + 
-  labs(title="Histogram for Scores") +
-  labs(x="Scores", y="Count")
+  labs(title="Histogram for Review Count") +
+  labs(x="Review Count", y="")
 
-# rating less 4.5
-ggplot(data=plotdat, aes(x = rating)) + 
-  geom_histogram(aes(y =..density..), col="red", 
-                 alpha = .2) + 
+# histogram for score
+ggplot(data=df, aes(x = score)) + 
+  geom_histogram(aes(y =..density..), col="red", alpha = .2) + 
   geom_density(col=1) + 
-  labs(title="Histogram for Scores") +
-  labs(x="rating", y="Count")
+  labs(title="Histogram for Score") +
+  labs(x="Score", y="")
 
-plot(df$rating, df$review_count, pch=16, cex.main=1, cex.axis=0.8, cex=0.8, col=rgb(0,0,1,0.25), log='y',
-     ylab='Review Count', xlab='Rating', main='Yelp Online Doctor Review Counts vs. Ratings')
+# histogram for rating
+ggplot(data=df, aes(x = rating)) + 
+  geom_histogram(aes(y =..density..), col="red", alpha = .2) + 
+  geom_density(col=1) + 
+  labs(title="Histogram for Rating") +
+  labs(x="rating", y="")
 
-# Fit second order polynomial
-l <- lm(df$review_count ~ df$rating + I(df$rating^2))
-points(df$rating, predict(l), type='l')
+# rating freq
+table(df$rating)
+# top 6 freq of review counts
+head(table(df$review_count, df$rating))
 
-# equivalent in ggplot
-gplot <- ggplot(df, aes(rating, log(review_count))) + 
-  geom_point(col=rgb(0,0,1,0.25), pch=16, cex=2) +
-  geom_smooth(method="lm", formula=y~poly(x,2)) +
-  labs(title="Yelp Doctor Online Review Counts vs. ratings") +
-  theme_bw() +
-  theme(axis.text=element_text(size=14), axis.title=element_text(size=14), plot.title=element_text(size=16, face="bold"))
-gplot  
+# rating vs review counts
+ggplot(df, aes(x = factor(rating) , y = review_count)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(position = position_jitter(height = 0, width = 0.25), shape = 1, alpha = 0.4, color = "blue") +
+  labs(title="Doctor Rating vs. Review Counts") +
+  labs(x="Rating", y="Review Counts") +
+  geom_hline(yintercept = 0, size = 1, color = "darkgreen") +
+  BDbasics::theme_bd()
 
-# Data density with hexbin
-hexbin <- ggplot(df, aes(rating, log(review_count))) + 
-  stat_binhex() + theme_bw() +
-  theme(axis.text=element_text(size=14), axis.title=element_text(size=14))
-hexbin
+
+# rating vs score
+ggplot(df, aes(x = factor(rating) , y = score)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(position = position_jitter(height = 0, width = 0.25), shape = 1, alpha = 0.4, color = "blue") +
+  labs(title="Doctor Rating vs. Score") +
+  labs(x="Rating", y="Score") +
+  geom_hline(yintercept = 0, size = 1, color = "darkgreen") +
+  BDbasics::theme_bd()
+
+
 ```
 
+# Findings:
 
-Reference: 
+1. score has a long tail, the most frequent scores are around 0
+
+2. majority doctors have less than 20 reviews
+
+3. rating vs. review count. Rating 1-star and 5-star are associated with least reviews
+
+4. rating and score are perfectly correlated between before 5-start rating. 
+
+# Recommendation:
+
+To use Yelp doctor reviews wisely, not only looking into how many stars the doctors have, but also check out review numbers and review details.
+
+# Challenges:
+
+1. Yelp Fusion API OAuth 2.0 has less documentation and support, use API v2 documentation caused confusion.Download Postman for API keys.
+
+2. multiple review pages were received via web scraping, sum up all reviews for each doctor.
+
+3. using Shiny ggvis package to create interactive app, it is more challenging combining ggplot together to create reactive charts.
+
+
+# Reference: 
 
 https://github.com/jennybc/yelpr
 
@@ -249,5 +263,7 @@ http://journal.r-project.org/archive/2013-1/kahle-wickham.pdf
 https://www.r-bloggers.com/how-to-use-r-to-scrape-tweets-super-tuesday-2016/
 
 A list 6800 of English positive and negative opinion words - (Hu and Liu, KDD-2004), University of Illinois @ Chicago
+
+https://shiny.rstudio.com/gallery/movie-explorer.html
 
 https://gist.github.com/mylesmharrison/8886272
