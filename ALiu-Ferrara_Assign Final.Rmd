@@ -1,0 +1,356 @@
+---
+title: "Computational Mathematics"
+author: "Ann Liu-Ferrara"
+date: "May 22, 2017"
+output: html_document
+---
+
+## Final Project
+
+compete Kaggle.com Advanced Regression Techniques competition: https://www.kaggle.com/c/house-prices-advanced-regression-techniques.
+
+Pick one of the quantitative independent variables from the training data set (train.csv) , and define that variable as X. Pick SalePrice as the dependent variable, and define it as Y for the next analysis.
+
+Probability. Calculate as a minimum the below probabilities a through c. Assume the small letter "x" is estimated as the 4th quartile (this is correct) of the X variable, and the small letter "y" is estimated as the 2nd quartile of the Y variable. Interpret the meaning of all probabilities. 
+
+a. P(X>x | Y>y) b. P(X>x, Y>y) c. P(X<x | Y>y)
+
+```{r, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(caret)
+library(AppliedPredictiveModeling)
+library(corrplot)
+library(dplyr)
+library(forecast)
+
+train <- read.csv('train.csv', stringsAsFactors = FALSE)
+test <- read.csv('test.csv', stringsAsFactors = FALSE)
+testId <- test$Id
+test$SalePrice <- 0
+dim(train)
+
+```
+
+# Probability
+
+```{r}
+
+Y <- train$SalePrice
+X <- train$LotArea
+
+p.x <- quantile(X)[4]
+p.y <- quantile(Y)[2]
+
+# a. P(X>x | Y>y)
+px <- train %>% filter(LotArea > p.x & SalePrice > p.y) %>% 
+        tally()/nrow(train)
+py <- train%>% filter(SalePrice > p.y) %>% 
+        tally()/nrow(train)
+(px/py) 
+
+# b. P(X>x, Y>y) 
+px <- train %>% filter(LotArea > p.x) %>% 
+        tally()/nrow(train)
+py <- train%>% filter(SalePrice > p.y) %>% 
+        tally()/nrow(train)
+(px * py)
+
+# c. P(X<x | Y>y)
+px <- train %>% filter(LotArea < p.x & SalePrice > p.y) %>% 
+        tally()/nrow(train)
+py <- train%>% filter(SalePrice > p.y) %>% 
+        tally()/nrow(train)
+(px/py)
+
+```
+
+# Independence
+
+Does splitting the training data in this fashion make them independent? In other words, does P(XY)=P(X)P(Y) or does P(X|Y) = P(X)? Check mathematically, and then evaluate by running a Chi Square test for association. You might have to research this. A Chi Square test for independence (association) will require you to bin the data into logical groups. 
+
+Below I will check if P(X|Y) = P(X)
+
+```{r}
+# use example a. P(X>x | Y>y) as P(X|Y)
+Y <- train$SalePrice
+X <- train$LotArea
+
+p.x <- quantile(X)[4]
+p.y <- quantile(Y)[2]
+
+px <- train %>% filter(LotArea > p.x & SalePrice > p.y) %>% 
+        tally()/nrow(train)
+py <- train%>% filter(SalePrice > p.y) %>% 
+        tally()/nrow(train)
+p.xy <- px/py
+
+#P(X)
+px <- train %>% filter(LotArea > p.x) %>% 
+        tally()/nrow(train)
+py <- train %>% 
+        tally()/nrow(train)
+p.x <- px/py
+
+(p.xy == p.x)
+
+```
+
+
+P(X|Y) = P(X) will be true only when p(X|Y = y) = p(X) for all y, in the splitting examples above, Y was not for all y, so splitting the training dagta in a to c those fashion don't make them independent.
+
+
+```{r}
+
+# chi square test
+chi.test <- table(train$SalePrice, train$LotArea)
+chisq.test(chi.test)
+
+
+```
+
+Based on Chi Square test result, p-value < .05, the null hypothese that there is no relationship between SalePrice and LotArea was rejected.
+
+## Descriptive and Inferential Statistics
+
+Provide univariate descriptive statistics and appropriate plots for both variables. Provide a scatterplot of X and Y. Transform both variables simultaneously using Box-Cox transformations. You might have to research this. Using the transformed variables, run a correlation analysis and interpret. Test the hypothesis that the correlation between these variables is 0 and provide a 99% confidence interval. Discuss the meaning of your analysis.
+
+```{r}
+
+# SalePrice
+summary(train$SalePrice)
+# LotArea
+summary(train$LotArea)
+
+comb <- data.frame(SalePrice = train$SalePrice, LotArea = train$LotArea)
+plot(train$LotArea, train$SalePrice)
+yx.lm <- lm(train$SalePrice ~ train$LotArea)
+lines(train$LotArea, predict(yx.lm), col="red")
+
+# medians of Y and X
+salePrice.median <-median(Y)
+lotArea.median <-median(X)
+
+#Create density plot for LotArea variable.
+# density of SalePrice
+ggplot(train, aes(x = SalePrice)) + 
+  geom_vline(xintercept = salePrice.median, col = "green", lwd = 1) +
+  geom_density(adjust = 5, col = 'darkblue') + 
+  labs(title="Density and Median for SalePrice") +
+  labs(x="SalePrice", y="")
+
+# density of X
+ggplot(train, aes(x = LotArea)) + 
+  geom_vline(xintercept = lotArea.median, col = "green", lwd = 1) +
+  geom_density(adjust = 5, col = 'darkblue') + 
+  labs(title="Density and Median for LotArea") +
+  labs(x="LotArea", y="")
+
+# transform variables using Box-Cox transformations
+SalePrice.lam <- BoxCox.lambda(train$SalePrice)
+trans.SalePrice <- BoxCox(train$SalePrice, SalePrice.lam)
+hist(trans.SalePrice)
+
+LotArea.lam <- BoxCox.lambda(train$LotArea)
+trans.LotArea <- BoxCox(train$LotArea, LotArea.lam)
+hist(trans.LotArea)
+```
+Hypothesis test using the transformed variables LotArea nd SalePrice to show a relationship betwee them
+
+```{r}
+(cor(cbind(trans.LotArea, trans.SalePrice)))
+
+(cor.test(trans.LotArea, trans.SalePrice, method = "pearson", conf.level = .99))
+(cor.test(train$LotArea, train$SalePrice, method = "pearson", conf.level = .99))
+```
+The above 2 correlation tests showed positive relationships between variables LotArea nd SalePrice before and after tranformation in 99% confident level, and the relationship became stronger after the variables were transformed .
+
+## Linear Algebra and Correlation. 
+
+Invert your correlation matrix from the previous section. (This is known as the precision matrix and contains variance inflation factors on the diagonal.) Multiply the correlation matrix by the precision matrix, and then multiply the precision matrix by the correlation matrix.
+
+```{r}
+(matr <- cor(cbind(trans.LotArea, trans.SalePrice)))
+
+(invM <- solve(matr))
+
+(matr %*% invM)
+(invM %*% matr)
+
+```
+
+## Calculus-Based Probability & Statistics
+
+Many times, it makes sense to fit a closed form distribution to data. For your non-transformed independent variable ( X ), location shift it so that the minimum value is above zero. Then load the MASS package and run fitdistr to fit a density function of your choice. (See https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/fitdistr.html ). Find the optimal value of the parameters for this distribution, and then take 1000 samples from this distribution (e.g., rexp(1000, $ \lambda $) for an exponential). Plot a histogram and compare it with a histogram of your non-transformed original variable. 
+
+```{r}
+library(MASS)
+# X is above zero, no shift is neccessary. 
+(min(X) > 0)
+
+op <- options(digits = 3)
+set.seed(123)
+dstr <- fitdistr(train$LotArea, "exponential")
+lamb <- dstr$estimate
+
+lotArea.opt <- rexp(1000, lamb)
+
+```
+
+After the variable was optimized
+
+```{r}
+hist(lotArea.opt)
+
+```
+
+Before the variable was optimized
+
+```{r}
+
+hist(train$LotArea)
+
+```
+
+Using optimization, the variable distribution was improved, less skewed, close to normal distribution.
+
+## PreProcess
+
+```{r}
+# set up train and test datasets
+train$IsTrainSet <- TRUE
+test$IsTrainSet <- FALSE
+df <- rbind(train, test)
+
+# checking missing value
+Num_NA <- sapply(df, function(y)
+  length(which(is.na(y) == T)))
+NA_Count <- data.frame(Item = colnames(df), Count = Num_NA)
+col_rm <- NA_Count$Count > 1500
+# remove the variables with high missing values higher than 1500
+df <- df[, !col_rm]
+# numeric variables and transfer dumm
+isnum <- sapply(df, is.numeric)
+dfnum <- df[, isnum]
+dim(dfnum)
+
+# convert factor values into numbers
+for(i in 1:76){
+  if(is.factor(df[,i])){
+    df[,i]<-as.integer(df[,i])
+  }
+}
+
+# replace missing value with 0
+df[is.na(df)] <- 0
+dfnum[is.na(dfnum)] <- 0
+
+# Descriptive Analysis, identify correlated predictors
+descrCor <- cor(dfnum, use = "pairwise.complete.obs")
+# corrplot
+corrplot(
+  descrCor,
+  method = "circle",
+  type = "lower",
+  sig.level = 0.01,
+  insig = "blank"
+)
+
+# remove descriptors with absolute correlations > .75
+(highlyCorDescr <- findCorrelation(descrCor, cutoff = .75))
+# 37 is SalePrice, selected as dependent var., remove the highly correlative var 4
+dfnum <- dfnum[, -c(4, highlyCorDescr[-1])]
+descrCor2 <- cor(dfnum)
+summary(descrCor2[upper.tri(descrCor2)])
+
+# corrplot
+corrplot(
+  descrCor2,
+  method = "circle",
+  type = "lower",
+  sig.level = 0.01,
+  insig = "blank"
+)
+
+
+# plot vars that have strong relationships with SalePrice
+pairs(~SalePrice+TotalBsmtSF+GarageArea+BsmtFullBath+TotRmsAbvGrd+BedroomAbvGr,data=dfnum,
+      main="Scatterplot Matrix")
+
+# remove linear dependencies
+lincomb = findLinearCombos(dfnum)
+lapply(lincomb$linearCombos, function(x) colnames(dfnum)[x])
+dfnum <- dfnum[-lincomb$remove]
+dim(dfnum)
+
+# categorical casting
+dfchar <- df[, !isnum]
+dim(dfchar)
+dfchar[] <- lapply(dfchar, factor) 
+
+# Boruta Feature Selection
+set.seed(121)
+if (!require('Boruta')) install.packages('Boruta')
+library(Boruta)
+sel.var <- cbind(dfnum[, -c(1)], dfchar)
+train <- sel.var[sel.var$IsTrainSet == TRUE, ]
+test <- sel.var[sel.var$IsTrainSet == FALSE, ]
+
+na.omit(train)->hvo
+bor.results <- Boruta(hvo[, -37],
+                      hvo$SalePrice,
+                      # maxRuns=101,
+                      doTrace=0)
+
+boruta.train <- TentativeRoughFix(bor.results)
+
+plot(boruta.train, xlab = "", xaxt = "n")
+lz<-lapply(1:ncol(boruta.train$ImpHistory),function(i)
+boruta.train$ImpHistory[is.finite(boruta.train$ImpHistory[,i]),i])
+names(lz) <- colnames(boruta.train$ImpHistory)
+Labels <- sort(sapply(lz,median))
+axis(side = 1,las=2,labels = names(Labels), at = 1:ncol(boruta.train$ImpHistory), cex.axis = 0.7)
+
+keepMe <- getSelectedAttributes(boruta.train, withTentative = F)
+
+myvars_train <- names(train) %in% keepMe
+myvars_test <- names(test) %in% keepMe
+
+train <- train[myvars_train]
+test <- test[myvars_test]
+test$Id <- testId
+
+
+```
+
+## Model Selection and Training
+
+```{r}
+# predict 
+
+# variable Exterior1st has different levels in test and train data set, so use train data set
+# remove Id and IsTrainSet
+train[] <- sapply(train, as.numeric)
+lm_model <- lm(SalePrice ~ ., data = train)
+
+summary(lm_model)
+aov(lm_model)
+test$SalePrice <- 0
+ 
+test[] <- sapply(test, as.numeric)
+myPred <- predict(lm_model, newdata = test[, -51])
+
+submit <- data.frame(Id = test$Id, SalePrice = myPred)
+write.csv(submit, file = "SalePricePred.csv",  row.names = FALSE)
+
+
+```
+
+Reference:
+
+http://topepo.github.io/caret/index.html
+
+https://www.kaggle.com/jiashenliu/house-prices-advanced-regression-techniques/updated-xgboost-with-parameter-tuning/run/362252/code
+
+https://github.com/wwells/CUNY_DATA_605/blob/master/FinalExam/WWells_FinalExam_pt1.Rmd
+
+http://rstudio-pubs-static.s3.amazonaws.com/256459_5a62c0ca6d5849af92607011bb6c3e1d.html
