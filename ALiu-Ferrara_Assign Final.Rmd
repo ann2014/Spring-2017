@@ -345,7 +345,16 @@ write.csv(submit, file = "SalePricePred.csv",  row.names = FALSE)
 
 ```
 
-Reference:
+## Kaggle Submission
+
+![Caption for the picture.](KaggleSubmission.png)
+
+## Conclusion:
+
+In this final project, I have learned so much by putting together math, probability, and modeling. Due to time constraint, I wouldn't be able to explore more models, but I used caret and some other packages for the first time, and submitted the predict results to Kaggle, that was a milestone.
+
+
+## Reference:
 
 http://topepo.github.io/caret/index.html
 
@@ -354,3 +363,9 @@ https://www.kaggle.com/jiashenliu/house-prices-advanced-regression-techniques/up
 https://github.com/wwells/CUNY_DATA_605/blob/master/FinalExam/WWells_FinalExam_pt1.Rmd
 
 http://rstudio-pubs-static.s3.amazonaws.com/256459_5a62c0ca6d5849af92607011bb6c3e1d.html
+
+https://github.com/wwells/CUNY_DATA_605/blob/master/FinalExam/WWells_FinalExam_pt2.Rmd
+
+https://www.youtube.com/watch?v=Zx2TguRHrJE#t=1438.034601
+
+https://www.youtube.com/watch?v=GBt-zt0KU4s
