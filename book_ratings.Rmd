@@ -11,12 +11,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## the recommender system 
 
-This system recommends data science books to readers.
-
- 
-## Data set selection and matrix 'user-item' 
+This system recommends 9 books to readers based on a short readers' survey.
 
 ```{r}
+library(Matrix)
+library(scales)
+library(psych)
+
+# Dataset upload 
 rating <-
   read.csv(
   'book_ratings.csv',
@@ -35,30 +37,88 @@ rating <-
   'book8',
   'book9')
   
-  # create a user-item matrix for each of train and test dataset
+
+```
+
+Create a user-item matrix, and split train and test dataset
+ 
+```{r}
+  (rownames(rating) <- rating[, 1])
+  (rating <- as.matrix(rating[, -1]))
   set.seed(123)
-  samp <- sample(nrow(rating), 0.7 * nrow(rating))
-  train <- rating[samp, ]
-  (rownames(train) <- train[, 1])
-  (train <- as.matrix(train[, -1]))
   
-  test <- rating[-samp, ]
-  (rownames(test) <- test[, 1])
-  (test <- as.matrix(test[, -1]))
-  
-  # Using training data, calculate the raw average (mean) rating for every user-item combination.
+  (i <- sample(nrow(rating), ncol(rating), replace=F))
+  (j <- seq(ncol(rating)))
+  (test <- sparseMatrix(i, j, x=rating[cbind(i,j)]))
+  (vals <- which(test !=0, arr.ind = T))
+  (rating[vals] <- 0)
+  train <- rating
+
+```
+
+Using training data, calculate the raw average (mean) rating for every user-item combination, and Calculate the RMSE for raw average for both your training data and your test data.
+
+```{r}
   (row.avg <- mean(train, na.rm = TRUE))
-  
-  # Calculate the RMSE for raw average for both your training data and your test data.
   (train.rmse <- sqrt(mean((train - row.avg)^2, na.rm=TRUE)))
-  (test.rmse <- sqrt(mean((test - row.avg)^2, na.rm=TRUE)))
-  
-  # Using training data, calculate the bias for each user and each item.
-  
-  
+  (test.rmse <- sqrt(mean((as(test, 'matrix') - row.avg)^2, na.rm=TRUE)))
   
 ```
 
-# . From the raw average, and the appropriate user and item biases, calculate the baseline predictors for every user-item combination.
-# . Calculate the RMSE for the baseline predictors for both your training data and your test data.
-# . Summarize your results.
+Using training data, calculate the bias for each user and each item.
+
+```{r}
+  (train.user.bias <- rowMeans(train, na.rm = T) - row.avg)
+  (train.item.bias <- colMeans(train, na.rm = T) - row.avg)
+  (test.user.bias <- rowMeans(test, na.rm = T) - row.avg)
+
+```
+
+Calculate the baseline predictors for every user-item combination
+
+```{r}
+  base.pred <- matrix(0, 12, 9)
+  for (i in 1:length(train.user.bias)) {
+    for(j in 1:length(train.item.bias)) {
+      base.pred[i, j] <- row.avg + train.user.bias[[i]] + train.item.bias[[j]] + base.pred[i, j]
+    }
+  }
+  
+  base.pred <- ifelse(base.pred < 1, 1, base.pred)
+  base.pred <- ifelse(base.pred > 5, 5, base.pred)
+  
+```
+
+Calculate the RMSE for the baseline predictors for both your training data and your test data.
+
+```{r}
+  (train.rmse.pred <- sqrt(mean((train - base.pred)^2, na.rm=TRUE)))
+  (test.rmse.pred <- sqrt(mean((as(test, 'matrix') - base.pred)^2, na.rm=TRUE)))
+  
+```
+
+Summarize your results.
+
+```{r}  
+  (train.rmse.pred < train.rmse)
+  
+paste0("train.rmse.pred: ", round(train.rmse.pred, 3), ", and train.rmse: ", round(train.rmse, 3), ". The baseline prediction reduces the training dataset RMSE by ", percent((train.rmse.pred - train.rmse)/train.rmse))
+
+  (test.rmse.pred < test.rmse)
+  
+paste0("test.rmse.pred: ", round(test.rmse.pred, 3), ", and test.rmse: ", round(test.rmse, 3), ". The baseline prediction increases the test dataset RMSE by ", percent(abs((test.rmse.pred - test.rmse)/train.rmse)) )
+```
+
+## Conclusion:
+
+Comparing to row average prediction, applying the baseline prediction algorithm reduced the RMSE for train dataset, but increased it for test dataset. I suspect that the problem is due to sample selection of slitting the training and testing dataset; I would adjuste the data split, and rerun the prediction in the future.
+
+Reference:
+
+https://stackoverflow.com/questions/6522134/r-return-position-of-element-in-matrix
+
+https://stackoverflow.com/questions/28439487/convert-sparse-matrix-dgcmatrix-to-realratingmatrix
+
+https://stackoverflow.com/questions/7719830/r-getting-attribute-values-as-a-vector
+
+https://github.com/wwells/CUNY_DATA_643/blob/master/Project1/WWells_P1.Rmd
