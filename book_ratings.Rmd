@@ -1,0 +1,64 @@
+---
+title: "Project1 - Data 643"
+author: "Ann Liu-Ferrara"
+date: "June 10, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## the recommender system 
+
+This system recommends data science books to readers.
+
+ 
+## Data set selection and matrix 'user-item' 
+
+```{r}
+rating <-
+  read.csv(
+  'book_ratings.csv',
+  na.strings = 'Did not read',
+  stringsAsFactors = FALSE
+  )[, -1]
+  names(rating) <-
+  c('name',
+  'book1',
+  'book2',
+  'book3',
+  'book4',
+  'book5',
+  'book6',
+  'book7',
+  'book8',
+  'book9')
+  
+  # create a user-item matrix for each of train and test dataset
+  set.seed(123)
+  samp <- sample(nrow(rating), 0.7 * nrow(rating))
+  train <- rating[samp, ]
+  (rownames(train) <- train[, 1])
+  (train <- as.matrix(train[, -1]))
+  
+  test <- rating[-samp, ]
+  (rownames(test) <- test[, 1])
+  (test <- as.matrix(test[, -1]))
+  
+  # Using training data, calculate the raw average (mean) rating for every user-item combination.
+  (row.avg <- mean(train, na.rm = TRUE))
+  
+  # Calculate the RMSE for raw average for both your training data and your test data.
+  (train.rmse <- sqrt(mean((train - row.avg)^2, na.rm=TRUE)))
+  (test.rmse <- sqrt(mean((test - row.avg)^2, na.rm=TRUE)))
+  
+  # Using training data, calculate the bias for each user and each item.
+  
+  
+  
+```
+
+# . From the raw average, and the appropriate user and item biases, calculate the baseline predictors for every user-item combination.
+# . Calculate the RMSE for the baseline predictors for both your training data and your test data.
+# . Summarize your results.
